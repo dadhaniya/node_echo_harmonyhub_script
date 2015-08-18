@@ -2,19 +2,23 @@ var express = require('express');
 var app = express();
 var harmony = require('harmonyhubjs-client');
 var harmonyip = '192.168.1.170';
+var winston = require('winston');
+	winston.remove(winston.transports.Console);
+	winston.add(winston.transports.Console, {timestamp:false, showLevel:false});
+	winston.add(winston.transports.File, {filename: 'history.log', json:false, timestamp:true, showLevel: false });
+
 
 app.get('/', function (req, res) {
 	res.send('Hello World!');
 });
 
 //Start TV
-app.get('/WatchTV', function (req, res) {
+app.get('/WatchTV', function (req, res) { //Path set for activity in Amazon Echo Bridge Configurator
 	harmony(harmonyip)
 	.then(function(harmonyClient) {
-	        var accid = 'XXXXXXXX';
-	        console.log("Starting Watch TV...");
-	        harmonyClient.startActivity(accid);
-	        harmonyClient.end();
+		winston.info("Starting Watch TV...");
+		harmonyClient.startActivity('XXXXXXXX'); // Activity ID from Harmony Hub, open Activities at IP to query Hub for all IDs
+		harmonyClient.end();
 	});
 	res.sendStatus(200);
 });
@@ -23,9 +27,9 @@ app.get('/WatchTV', function (req, res) {
 app.get('/StopTV', function (req, res) {
 	harmony(harmonyip)
 	.then(function(harmonyClient) {
-	        console.log("Turning Off...");
-	        harmonyClient.turnOff();
-	        harmonyClient.end();
+		winston.info("Turning Off...");
+		harmonyClient.turnOff();
+		harmonyClient.end();
 	});
 	res.sendStatus(200);
 });
@@ -34,10 +38,9 @@ app.get('/StopTV', function (req, res) {
 app.get('/AppleTV', function (req, res) {
 	harmony(harmonyip)
 	.then(function(harmonyClient) {
-	        var accid = 'XXXXXXXX';
-	        console.log("Starting AppleTV...");
-	        harmonyClient.startActivity(accid);
-	        harmonyClient.end();
+		winston.info("Starting AppleTV...");
+		harmonyClient.startActivity('XXXXXXXX');
+		harmonyClient.end();
 	});
 	res.sendStatus(200);
 });
@@ -46,10 +49,9 @@ app.get('/AppleTV', function (req, res) {
 app.get('/Firestick', function (req, res) {
 	harmony(harmonyip)
 	.then(function(harmonyClient) {
-	        var accid = 'XXXXXXXX';
-	        console.log("Starting Firestick...");
-	        harmonyClient.startActivity(accid);
-	        harmonyClient.end();
+		winston.info("Starting Firestick...");
+		harmonyClient.startActivity('XXXXXXXX');
+		harmonyClient.end();
 	});
 	res.sendStatus(200);
 });
@@ -58,10 +60,9 @@ app.get('/Firestick', function (req, res) {
 app.get('/Xbox', function (req, res) {
 	harmony(harmonyip)
 	.then(function(harmonyClient) {
-	        var accid = 'XXXXXXXX';
-	        console.log("Starting Xbox One...");
-	        harmonyClient.startActivity(accid);
-	        harmonyClient.end();
+		winston.info("Starting Xbox One...");
+		harmonyClient.startActivity('XXXXXXXX');
+		harmonyClient.end();
 	});
 	res.sendStatus(200);
 });
@@ -70,10 +71,9 @@ app.get('/Xbox', function (req, res) {
 app.get('/WiiU', function (req, res) {
 	harmony(harmonyip)
 	.then(function(harmonyClient) {
-	        var accid = 'XXXXXXXX';
-	        console.log("Starting Wii U...");
-	        harmonyClient.startActivity(accid);
-	        harmonyClient.end();
+		winston.info("Starting Wii U...");
+		harmonyClient.startActivity('XXXXXXXX');
+		harmonyClient.end();
 	});
 	res.sendStatus(200);
 });
@@ -82,10 +82,9 @@ app.get('/WiiU', function (req, res) {
 app.get('/Chromecast', function (req, res) {
 	harmony(harmonyip)
 	.then(function(harmonyClient) {
-	        var accid = 'XXXXXXXX';
-	        console.log("Starting Chromecast...");
-	        harmonyClient.startActivity(accid);
-	        harmonyClient.end();
+		winston.info("Starting Chromecast...");
+		harmonyClient.startActivity('XXXXXXXX');
+		harmonyClient.end();
 	});
 	res.sendStatus(200);
 });
@@ -94,13 +93,13 @@ app.get('/Chromecast', function (req, res) {
 app.get('/Activities', function (req, res) {
 	harmony(harmonyip)
 	.then(function(harmonyClient) {
-	        harmonyClient.getActivities()
-	        .then(function(activities) {
-	                activities.some(function(activity) {
-	                        console.log(activity.label + '(' + activity.id + ')');
-	                });
-	                harmonyClient.end();
-	        });
+		harmonyClient.getActivities()
+		.then(function(activities) {
+			activities.some(function(activity) {
+				winston.info(activity.label + ' (' + activity.id + ')');
+			});
+			harmonyClient.end();
+		});
 	});
 	res.send('Check console for activity list');
 });
@@ -109,5 +108,5 @@ app.get('/Activities', function (req, res) {
 var server = app.listen(8088, function () {
 	var port = server.address().port;
 
-	console.log('Server running on port %s', port);
+	winston.info('Server running on port %s', port);
 });
