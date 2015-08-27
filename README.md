@@ -9,4 +9,4 @@ Required node modules:
 - `node-hue-api`
 - `winston`
 
-Use at your own risk not responsible if something blows up or if Alexa becomes self aware
+Use at your own risk not responsible if something goes wrong or if Alexa becomes self aware

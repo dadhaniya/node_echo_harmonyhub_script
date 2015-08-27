@@ -5,27 +5,27 @@ var harmonyip = '192.168.1.170';
 var winston = require('winston');
 	winston.remove(winston.transports.Console);
 	winston.add(winston.transports.Console, {timestamp:false, showLevel:false});
-	winston.add(winston.transports.File, {filename: 'history.log', json:true, timestamp:true, showLevel: true });
+	winston.add(winston.transports.File, {filename: 'history.json', json:true, timestamp:true, showLevel: true });
 
 var HueApi = require('node-hue-api').HueApi;
 var nhuelights = 3;
 var hueip = '192.168.1.119';
-var	hueusername = '';
+var hueusername = '';
 var hue = new HueApi(hueip,hueusername);
+
+
+//Change Activity Function ID is activity ID from Harmony Hub, name is only for logging purposes
+function changeActivity(name,id){
+	harmony(harmonyip)
+	.then(function(harmonyClient) {
+		winston.info('Starting ' + name + '...');
+		harmonyClient.startActivity(id).end();
+	});
+}
 
 
 app.get('/', function (req, res) {
 	res.send('Hello World!');
-});
-
-//Start TV
-app.get('/WatchTV', function (req, res) { //Path set for activity in Amazon Echo Bridge Configurator
-	harmony(harmonyip)
-	.then(function(harmonyClient) {
-		winston.info("Starting Watch TV...");
-		harmonyClient.startActivity('XXXXXXXX').end();
-	});
-	res.sendStatus(200);
 });
 
 //Stop TV
@@ -38,53 +38,39 @@ app.get('/StopTV', function (req, res) {
 	res.sendStatus(200);
 });
 
+//Start TV
+app.get('/WatchTV', function (req, res) { //Path set for activity in Amazon Echo Bridge Configurator
+	changeActivity('Watch TV','XXXXXXXX');
+	res.sendStatus(200);
+});
+
 //Start Apple TV
 app.get('/AppleTV', function (req, res) {
-	harmony(harmonyip)
-	.then(function(harmonyClient) {
-		winston.info("Starting AppleTV...");
-		harmonyClient.startActivity('XXXXXXXX').end();
-	});
+	changeActivity('AppleTV','XXXXXXXX');
 	res.sendStatus(200);
 });
 
 //Start Firestick
 app.get('/Firestick', function (req, res) {
-	harmony(harmonyip)
-	.then(function(harmonyClient) {
-		winston.info("Starting Firestick...");
-		harmonyClient.startActivity('XXXXXXXX').end();
-	});
+	changeActivity('Firestick','XXXXXXXX');
 	res.sendStatus(200);
 });
 
 //Start Xbox One
 app.get('/Xbox', function (req, res) {
-	harmony(harmonyip)
-	.then(function(harmonyClient) {
-		winston.info("Starting Xbox One...");
-		harmonyClient.startActivity('XXXXXXXX').end();
-	});
+	changeActivity('Xbox One','XXXXXXXX');
 	res.sendStatus(200);
 });
 
 //Start WiiU
 app.get('/WiiU', function (req, res) {
-	harmony(harmonyip)
-	.then(function(harmonyClient) {
-		winston.info("Starting Wii U...");
-		harmonyClient.startActivity('XXXXXXXX').end();
-	});
+	changeActivity('Wii U','XXXXXXXX');
 	res.sendStatus(200);
 });
 
 //Start Chromecast
 app.get('/Chromecast', function (req, res) {
-	harmony(harmonyip)
-	.then(function(harmonyClient) {
-		winston.info("Starting Chromecast...");
-		harmonyClient.startActivity('XXXXXXXX').end();
-	});
+	changeActivity('Chromecast','XXXXXXXX');
 	res.sendStatus(200);
 });
 
