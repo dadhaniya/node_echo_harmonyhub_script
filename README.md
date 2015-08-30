@@ -6,7 +6,8 @@ Requires [`Amazon-Echo-HA-Bridge`](https://github.com/armzilla/amazon-echo-ha-br
 Required node modules:
 - `express`
 - `harmonyhubjs-client`
-- `node-hue-api`
+- `jade`
+- `request`
 - `winston`
 
 Use at your own risk not responsible if something goes wrong or if Alexa becomes self aware

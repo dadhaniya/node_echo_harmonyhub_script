@@ -1,20 +1,39 @@
+//Load express and Jade templeting
 var express = require('express');
 var app = express();
+	app.set('view engine', 'jade');
+	app.use(express.static('public'));
+
+//Load Harmony Hub plugin
 var harmony = require('harmonyhubjs-client');
 var harmonyip = '192.168.1.170';
+
+//Load Plugins
+var fs = require('fs');
+var request = require('request');
+
+//Load Winston Transports
 var winston = require('winston');
 	winston.remove(winston.transports.Console);
 	winston.add(winston.transports.Console, {timestamp:false, showLevel:false});
 	winston.add(winston.transports.File, {filename: 'history.json', json:true, timestamp:true, showLevel: true });
 
-var HueApi = require('node-hue-api').HueApi;
+//Hue variables
 var nhuelights = 3;
 var hueip = '192.168.1.119';
 var hueusername = '';
-var hue = new HueApi(hueip,hueusername);
+var hueurl = 'http://'+hueip+'/api/'+hueusername;
 
 //create array based on number of hue lights with empty values
-var light=[]; for (i = 1; i <= nhuelights; i++) {light[i] = '';}
+var light = [];
+for (i = 1; i <= nhuelights; i++) {
+	light[i] = '';
+	}
+
+//Landing Page
+app.get('/', function (req, res) {
+	res.render('index');
+});
 
 //Function to change activity, activity ID from Harmony Hub, name is only for logging purposes
 function changeActivity(name, id){
@@ -23,11 +42,7 @@ function changeActivity(name, id){
 		winston.info('Starting ' + name + '...');
 		harmonyClient.startActivity(id).end();
 	});
-};
-
-app.get('/', function (req, res) {
-	res.send('Hello World!');
-});
+}
 
 //Stop TV
 app.get('/StopTV', function (req, res) {
@@ -72,6 +87,7 @@ app.get('/Chromecast', function (req, res) {
 
 
 //Get list of Harmony Hub activity ids
+var test = [];
 app.get('/Activities', function (req, res) {
 	harmony(harmonyip)
 	.then(function(harmonyClient) {
@@ -79,86 +95,78 @@ app.get('/Activities', function (req, res) {
 		.then(function(activities) {
 			activities.some(function(activity) {
 				console.log(activity.label + ' (' + activity.id + ')');
+				test.push(activity.label + ' (' + activity.id + ')');
 			});
+			fs.writeFile('public/act.txt',test);
 			harmonyClient.end();
 		});
 	});
 	res.send('Check console for activity list');
 });
 
+
+//Function to save JSON response from Hue Paths
+function jsonsave(name) {
+    request.get(hueurl + name, function(error, response, body) {
+        if (!error && response.statusCode == 200) {
+            fs.writeFile('public' + name + '.json', JSON.stringify(JSON.parse(body), null, 4));
+        }
+    });
+}
+
 //Get List of Hue Lights
 app.get('/ListLights', function (req, res) {
-	hue.lights(function(err, result) {
-		if (err) throw err;
-			console.log(result);
-		});
+	jsonsave('/lights');
 	res.sendStatus(200);
 });
 
 //Get List of Hue Scenes
 app.get('/ListScenes', function (req, res) {
-	hue.scenes(function(err, result) {
-		if (err) throw err;
-			console.log(result);
-		});
+	jsonsave('/scenes');
 	res.sendStatus(200);
 });
 
-//Get Current State of Lights
-app.get('/GetHueState', function (req, res) {
-	for (i = 1; i <= nhuelights; i++) {
-		hue.lightStatus(i, function(err, result) {
-			if (err) throw err;
-				console.log(result);
-			});
-	}
-	res.sendStatus(200);
-});
-
-//Start Sky Scene
-app.get('/SkyScene', function (req, res) {
-	hue.activateScene('62f8ac156-on-0', function(err,result) { //Sky ID from Hue
-		if (err) throw err;
-			result;
-		});
-	winston.info("Starting Sky Scene...");
-	res.sendStatus(200);
-});
 
 //Function to change color of lights based on light array variables
 function colorchange(name){
 	for (i = 1; i <= nhuelights; i++){
-		hue.setLightState(i, light[i], function(err, result) {
-			if (err) throw err;
-				result;
-			});
-		}
+		request({method:'PUT', url:hueurl + '/lights/' + i + '/state', json: light[i]}, function(error, request, body){});
+	}
 	winston.info('Starting ' + name + ' Scene...');
-};
+}
+
+//Start Sky Scene
+app.get('/SkyScene', function (req, res) {
+	light[1] = {"on":true, "bri":254, "hue":34258, "sat":176, "effect":"none", "xy":[0.3327,0.3413], "ct":181};
+	light[2] = {"on":true, "bri":247, "hue":40891, "sat":252, "effect":"none", "xy":[0.2380,0.1797], "ct":500};
+	light[3] = {"on":true, "bri":254, "hue":34258, "sat":176, "effect":"none", "xy":[0.3327,0.3413], "ct":181};
+	colorchange('Sky');
+	res.sendStatus(200);
+});
 
 //Start Nightlife Scene
-app.get('/NightlifeScene', function (req, res) {
-	light[1]={"on":true, "bri":254, "hue":47125, "sat":253, "effect":"none", "xy":[0.1684,0.0416], "ct":500};
-	light[2]={"on":true, "bri":254, "hue":63494, "sat":253, "effect":"none", "xy":[0.6178,0.2911], "ct":500};
-	light[3]={"on":true, "bri":254, "hue":48695, "sat":253, "effect":"none", "xy":[0.2115,0.0656], "ct":500};
+app.get( ' /NightlifeScene', function (req, res) {
+	light[1] = {"on":true, "bri":254, "hue":47125, "sat":253, "effect":"none", "xy":[0.1684,0.0416], "ct":500};
+	light[2] = {"on":true, "bri":254, "hue":63494, "sat":253, "effect":"none", "xy":[0.6178,0.2911], "ct":500};
+	light[3] = {"on":true, "bri":254, "hue":48695, "sat":253, "effect":"none", "xy":[0.2115,0.0656], "ct":500};
 	colorchange('Nightlife');
 	res.sendStatus(200);
 });
 
 //Start Aurora Scene
 app.get('/AuroraScene', function (req, res) {
-	light[1]={"on":true, "bri":85, "hue":15955, "sat":  79, "effect":"none", "xy":[0.4080,0.5170], "ct":307};
-	light[2]={"on":true, "bri":85, "hue":15187, "sat": 129, "effect":"none", "xy":[0.3847,0.4707], "ct":353};
-	light[3]={"on":true, "bri":51, "hue":15629, "sat": 102, "effect":"none", "xy":[0.4080,0.5170], "ct":325};
+	light[1] = {"on":true, "bri":85, "hue":15955, "sat":  79, "effect":"none", "xy":[0.4080,0.5170], "ct":307};
+	light[2] = {"on":true, "bri":85, "hue":15187, "sat": 129, "effect":"none", "xy":[0.3847,0.4707], "ct":353};
+	light[3] = {"on":true, "bri":51, "hue":15629, "sat": 102, "effect":"none", "xy":[0.4080,0.5170], "ct":325};
 	colorchange('Aurora');
 	res.sendStatus(200);
 });
 
 //Start Cinema Scene
 app.get('/CinemaScene', function (req, res) {
-	light[1]={"on":true, "bri":254, "hue":65527, "sat":253, "effect":"none", "xy":[0.6736,0.3221], "ct":500};
-	light[2]={"on":true, "bri":254, "hue":10660, "sat":252, "effect":"none", "xy":[0.5628,0.4034], "ct":500};
-	light[3]={"on":true, "bri":254, "hue":6396 , "sat":253, "effect":"none", "xy":[0.6077,0.3710], "ct":500};
+	light[1] = {"on":true, "bri":254, "hue":65527, "sat":253, "effect":"none", "xy":[0.6736,0.3221], "ct":500};
+	light[2] = {"on":true, "bri":254, "hue":10660, "sat":252, "effect":"none", "xy":[0.5628,0.4034], "ct":500};
+	light[3] = {"on":true, "bri":254, "hue":6396 , "sat":253, "effect":"none", "xy":[0.6077,0.3710], "ct":500};
 	colorchange('Cinema');
 	res.sendStatus(200);
 });
@@ -168,13 +176,10 @@ app.get('/CinemaScene', function (req, res) {
 //Loop through all lights and change them to the same color, name is only for logging purposes
 function samecolor(name, lightcolor) {
 	for (i = 1; i <= nhuelights; i++) {
-		hue.setLightState(i, lightcolor, function(err, result) {
-			if (err) throw err;
-				result;
-			});
-		}
+		request({method:'PUT', url:hueurl + '/lights/' + i + '/state', json: lightcolor}, function(error, request, body){});
+	}
 	winston.info('Starting ' + name + ' Scene...');
-};
+}
 
 //Start Daredevil Scene
 app.get('/DaredevilScene', function (req, res) {
@@ -192,7 +197,7 @@ app.get('/BlueLightsScene', function (req, res) {
 
 //Start Mood Scene
 app.get('/MoodScene', function (req, res) {
-	var lightcolor = {"on":true, "bri":84, "hue":3166, "sat":167, "effect":"none", "xy":[0.5525,0.3567], "ct":500};
+	var lightcolor = {"on":true, "bri": 84, "hue": 3166, "sat":167, "effect":"none", "xy":[0.5525,0.3567], "ct":500};
 	samecolor('Mood', lightcolor);
 	res.sendStatus(200);
 });
