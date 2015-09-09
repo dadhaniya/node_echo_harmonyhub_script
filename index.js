@@ -145,7 +145,7 @@ app.get('/SkyScene', function (req, res) {
 });
 
 //Start Nightlife Scene
-app.get( ' /NightlifeScene', function (req, res) {
+app.get('/NightlifeScene', function (req, res) {
 	light[1] = {"on":true, "bri":254, "hue":47125, "sat":253, "effect":"none", "xy":[0.1684,0.0416], "ct":500};
 	light[2] = {"on":true, "bri":254, "hue":63494, "sat":253, "effect":"none", "xy":[0.6178,0.2911], "ct":500};
 	light[3] = {"on":true, "bri":254, "hue":48695, "sat":253, "effect":"none", "xy":[0.2115,0.0656], "ct":500};
