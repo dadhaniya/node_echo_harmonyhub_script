@@ -20,7 +20,7 @@ var winston = require('winston');
 
 //Hue variables
 var nhuelights = 3;
-var hueip = '192.168.1.119';
+var hueip = '192.168.1.118';
 var hueusername = '';
 var hueurl = 'http://'+hueip+'/api/'+hueusername;
 
@@ -89,13 +89,14 @@ app.get('/Chromecast', function (req, res) {
 //Get list of Harmony Hub activity ids
 var test = [];
 app.get('/Activities', function (req, res) {
+	test = [];
 	harmony(harmonyip)
 	.then(function(harmonyClient) {
 		harmonyClient.getActivities()
 		.then(function(activities) {
 			activities.some(function(activity) {
 				console.log(activity.label + ' (' + activity.id + ')');
-				test.push(activity.label + ' (' + activity.id + ')');
+				test.push('\n'+activity.label + ' (' + activity.id + ')');
 			});
 			fs.writeFile('public/act.txt',test);
 			harmonyClient.end();
@@ -171,6 +172,15 @@ app.get('/CinemaScene', function (req, res) {
 	res.sendStatus(200);
 });
 
+//Start Wave Scene
+app.get('/WaveScene', function (req, res) {
+	light[1] = {"on":true, "bri": 76, "hue":41977, "sat":252, "effect":"none", "xy":[0.2259,0.1557], "ct": 500};
+	light[2] = {"on":true, "bri": 72, "hue":41630, "sat":252, "effect":"none", "xy":[0.2298,0.1634], "ct": 500};
+	light[3] = {"on":true, "bri": 54, "hue":40760, "sat":253, "effect":"none", "xy":[0.2389,0.1818], "ct": 500};
+	colorchange('Wave');
+	res.sendStatus(200);
+});
+
 //Same color scenes
 
 //Loop through all lights and change them to the same color, name is only for logging purposes
@@ -180,6 +190,13 @@ function samecolor(name, lightcolor) {
 	}
 	winston.info('Starting ' + name + ' Scene...');
 }
+
+//Start Reading Scene
+app.get('/ReadingScene', function (req, res) {
+	var lightcolor = {"on":true, "bri":254, "hue":14213, "sat":130, "effect":"none", "xy":[0.4556,0.4045], "ct":362};
+	samecolor('Reading', lightcolor);
+	res.sendStatus(200);
+});
 
 //Start Daredevil Scene
 app.get('/DaredevilScene', function (req, res) {
