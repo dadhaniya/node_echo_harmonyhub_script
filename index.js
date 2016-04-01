@@ -75,11 +75,6 @@ app.get('/Xbox', function (req, res) {
 	res.sendStatus(200);
 });
 
-app.get('/WiiU', function (req, res) {
-	changeActivity('Wii U','XXXXXXXX');
-	res.sendStatus(200);
-});
-
 app.get('/Chromecast', function (req, res) {
 	changeActivity('Chromecast','XXXXXXXX');
 	res.sendStatus(200);
